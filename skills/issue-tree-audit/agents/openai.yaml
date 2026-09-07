@@ -1,0 +1,4 @@
+interface:
+  display_name: "Issue Tree Audit"
+  short_description: "Audit and phase GitHub issue cleanup"
+  default_prompt: "Use $issue-tree-audit to review my issue tree against the current codebase and propose phased cleanup."

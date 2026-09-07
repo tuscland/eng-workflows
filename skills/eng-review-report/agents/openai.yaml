@@ -1,0 +1,4 @@
+interface:
+  display_name: "Eng Review Report"
+  short_description: "Summarize PRs merged to main for Eng Review"
+  default_prompt: "Use $eng-review-report to summarize my pull requests merged to main for Eng Review."

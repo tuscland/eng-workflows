@@ -1,0 +1,4 @@
+interface:
+  display_name: "List Merged PRs"
+  short_description: "Format recently merged PRs for Slack"
+  default_prompt: "Use $list-merged-prs to list my PRs merged since yesterday."
