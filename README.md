@@ -8,7 +8,7 @@ These skills form an orchestration layer on top of Matt Pocock's planning, imple
 
 | Skill | Purpose | Builds on |
 | --- | --- | --- |
-| [`plan-issue-tree`](skills/plan-issue-tree/SKILL.md) | Turn a substantial change into a published specification and dependency-aware ticket tree on an integration branch. | `grill-with-docs`, `to-spec`, `to-ticket` |
+| [`plan-issue-tree`](skills/plan-issue-tree/SKILL.md) | Publish discovery documents on an integration branch, then the specification, tickets, and handoff in the tracker. | `grill-with-docs`, `to-spec`, `to-tickets` |
 | [`implement-ticket`](skills/implement-ticket/SKILL.md) | Validate a ticket's planning handoff, implement it in an isolated worktree, and open its draft pull request. | `implement` |
 | [`review-ticket`](skills/review-ticket/SKILL.md) | Independently review the implementation linked to a ticket using only durable remote state. | `code-review` |
 | [`address-review`](skills/address-review/SKILL.md) | Verify review findings, implement accepted fixes, commit locally, and prepare the push and reply for approval. | `implement` |

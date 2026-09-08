@@ -6,7 +6,7 @@ This workflow carries a substantial tracked change from discovery through implem
 
 It composes existing planning, implementation, and code-review skills. Those skills own the quality of their specialist work. The four workflow skills in this repository own the surrounding lifecycle:
 
-- durable planning artifacts;
+- durable documents produced by discovery;
 - issue-tree and blocker state;
 - integration and implementation branches;
 - isolated worktrees and test environments;
@@ -15,7 +15,7 @@ It composes existing planning, implementation, and code-review skills. Those ski
 
 The central invariant is:
 
-> No implementation worktree may be created until every required planning artifact is committed to and reachable from the remote branch used as that worktree's base.
+> No implementation worktree may be created until every required document produced by discovery is committed to and reachable from the remote branch used as that worktree's base, and its specification and ticket metadata are published in the tracker.
 
 ## Roles
 
@@ -29,7 +29,7 @@ Local state is a convenience within one agent. Remote Git history and tracker da
 
 | Command | Responsibility | Specialist skill |
 | --- | --- | --- |
-| `/plan-issue-tree` | Create the integration branch, plan the change, publish planning artifacts, and establish the issue tree | `/grill-with-docs`, `/to-spec`, `/to-ticket` |
+| `/plan-issue-tree` | Create the integration branch, publish discovery documents, and establish the specification and issue tree in the tracker | `/grill-with-docs`, `/to-spec`, `/to-tickets` |
 | `/implement-ticket` | Validate one ticket's handoff, implement it in an isolated worktree, and open a draft pull request | `/implement` |
 | `/review-ticket` | Independently review the implementation linked to a ticket | `/code-review` |
 | `/address-review` | Verify findings, implement accepted fixes, commit locally, and prepare a reply | `/implement` |
@@ -38,8 +38,9 @@ Local state is a convenience within one agent. Remote Git history and tracker da
 
 The workflow does not use a private manifest or hidden marker. State lives in artifacts every participating agent can retrieve:
 
-- The integration branch contains ADRs, research notes, specifications, and other shared planning documents.
-- The parent issue records the integration branch, planning baseline commit, and planning artifact paths.
+- The integration branch contains only the repository documents created or updated by `/grill-with-docs`, typically ADRs, research notes, and glossary changes.
+- The tracker contains the authoritative specification, tickets, acceptance criteria, dependencies, and handoff. Temporary drafts are not repository deliverables.
+- The parent issue records the integration branch, planning baseline commit, and paths of the documents produced by `/grill-with-docs`, or `none` when there are no such documents.
 - Native parent, child, and blocker relationships describe the implementation graph.
 - Each child ticket contains its acceptance criteria, implementation base, and planning baseline.
 - Each implementation pull request links its ticket and targets the ticket's declared base.
@@ -87,15 +88,13 @@ All repository worktrees live under the repository's `.worktrees/` directory:
 
 `/plan-issue-tree` creates the integration branch and worktree before invoking the planning skills. This ensures every ADR and research note is created in the branch that will become the common ancestor of the implementation tickets.
 
-The author runs discovery, specification, and ticket decomposition without starting implementation. Before publication, the workflow shows the user:
+The author runs `/grill-with-docs`, `/to-spec`, and `/to-tickets` in sequence, continuing as each skill's own checkpoints are satisfied. The wrapper adds no publication approval. Discovery findings and local drafts are intermediate work; completion requires the published specification, ticket metadata, and verified handoff.
 
-- planning artifacts;
-- the proposed issue tree;
-- acceptance criteria and blockers;
-- the integration branch;
-- intended tracker mutations.
+Explicit invocation authorizes validating, committing, and normally pushing only the documents produced by `/grill-with-docs`. This happens before `/to-spec` publishes the specification and `/to-tickets` publishes the approved breakdown, so every referenced document is already available when a ticket becomes ready. If discovery produces no document changes, the pushed integration tip is the baseline; no empty commit or placeholder document is needed.
 
-After approval, the workflow commits and pushes the planning artifacts, publishes or updates the issue tree, records the final planning baseline, and verifies the remote state. If issue identifiers are backfilled into planning files, the resulting follow-up commit becomes the baseline.
+The upstream interview, test-seam, and breakdown checkpoints still apply, with existing answers and approvals respected. A detailed existing issue is input to specification, not a substitute for completing the sequence. A breakdown may retain one implementation issue without creating children.
+
+The workflow records the baseline and document links on the parent issue and each child's handoff, then verifies remote state. If issue identifiers are backfilled into discovery documents, the normally pushed follow-up commit becomes the baseline. Specifications, publication runbooks, and handoffs are not duplicated in repository files.
 
 A ticket is ready only when its base exists remotely, its baseline is reachable from that base, its planning artifacts exist at that baseline, and its blockers are represented in the tracker.
 
@@ -129,7 +128,7 @@ The push always happens first. The reply is posted only after the remote pull-re
 
 | Phase | Automatic | Requires approval |
 | --- | --- | --- |
-| Plan | Local branch/worktree creation and planning | Commit and push planning artifacts; create or update tracker items |
+| Plan | Branch/worktree creation; commit and normal push of discovery documents; upstream specification and ticket publication | Upstream interview, test-seam, and ticket-breakdown checkpoints; ambiguous ownership or actual blockers |
 | Implement | Commit, normal push, and draft pull-request creation after successful verification | Product or architecture decisions; ambiguous or missing handoff state |
 | Review | Read-only inspection and draft preparation | Posting the review |
 | Address review | Verified fixes and local commit | Pushing the fix commit and posting the reply |

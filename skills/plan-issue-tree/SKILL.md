@@ -1,6 +1,6 @@
 ---
 name: plan-issue-tree
-description: "Plan a multi-ticket change on an integration branch by orchestrating /grill-with-docs, /to-spec, and /to-ticket, then publish a durable planning handoff. Use before implementation begins."
+description: "Plan a tracked change on an integration branch by running /grill-with-docs, /to-spec, and /to-tickets in sequence, then publish its implementation handoff. Use before implementation begins."
 ---
 
 # Plan Issue Tree
@@ -11,26 +11,33 @@ Usage:
 /plan-issue-tree <parent-issue-or-goal>
 ```
 
-The upstream planning skills own discovery, specification quality, and ticket decomposition. This skill owns the integration branch, planning worktree, durable handoff, tracker publication, and approval boundary.
+The upstream skills own discovery, specification quality, ticket decomposition, and their user checkpoints. This wrapper owns the integration branch, worktree, publication of supporting documents, and durable handoff.
 
-The issue tracker and pushed Git history are the shared state. Do not rely on conversation memory, an unpublished local file, or a separate hidden state store.
+## Shared state and authorization
+
+- The configured issue tracker owns the authoritative specification, tickets, acceptance criteria, dependencies, and implementation handoff. Local drafts are temporary working material, not repository deliverables.
+- Only repository documents created or updated by `/grill-with-docs` are eligible for a planning commit: typically ADRs, research notes, and glossary changes. Use the repository's document conventions. The wrapper creates no specification copy, planning runbook, or handoff file in Git.
+- Explicit invocation authorizes committing and normally pushing those documents and running the upstream skills through tracker publication. Preserve their interview, test-seam, and ticket-breakdown checkpoints; honor answers and approvals already supplied. There is no additional wrapper-level publication approval.
+
+Pause for an unanswered decision, an upstream checkpoint, required tool authorization, or an actual blocker. Otherwise continue to the next step automatically; reporting discovery findings or preparing local drafts does not complete this workflow.
+
+## Workflow
 
 1. Load the repository instructions and its issue-tracker, branch, worktree, and documentation conventions. Resolve the target branch and either the existing parent issue or the goal from which one will be created.
 2. Before planning, create the integration branch and its worktree from the target branch. Put the worktree under the repository's `.worktrees/` directory. If the intended branch already exists, fetch and inspect it rather than creating a competing branch; ask the user when its ownership or state is ambiguous.
-3. In the integration worktree, run `/grill-with-docs`. Keep every resulting ADR, research note, and supporting document in the repository paths required by its conventions.
-4. Run `/to-spec` to produce the authoritative specification, then run `/to-ticket` through preparation of the implementation tree, acceptance criteria, and dependency relationships. Stop at its publication boundary: do not authorize tracker writes, start implementation, or create child worktrees yet.
-5. Present the proposed planning artifacts, issue tree, dependencies, integration branch, and intended tracker mutations. Wait for approval before publishing the plan.
-6. Approval authorizes committing only the planning artifacts, pushing the integration branch normally, and creating or updating the named parent and child issues. Publish the planning commit before implementation begins. If issue publication adds links or identifiers to planning files, commit and push that follow-up, then treat the last pushed commit as the planning baseline.
-7. Record a visible handoff on the parent issue:
+3. In the integration worktree, run `/grill-with-docs` to resolve the design. Treat decisions already settled by the user or current issue as inputs. Once its checkpoints are satisfied, proceed to specification rather than ending with a discovery report or asking whether to continue.
+4. Validate, commit, and normally push only the documents produced by `/grill-with-docs`. If it produced no document changes, push the integration branch at its existing tip; no empty commit or artificial artifact is needed. The pushed tip is the planning baseline. Establish this before either upstream skill publishes an issue as ready.
+5. Run `/to-spec` through publication to the configured tracker. Synthesize the settled design into the authoritative specification, updating the existing issue when one was supplied. Re-read concurrent issue edits before writing. An existing detailed issue is input to this step, not a reason to skip it or create a parallel specification in Git.
+6. Then run `/to-tickets` through its breakdown checkpoint and tracker publication, including acceptance criteria and native parent/blocker relationships. Let it determine the necessary granularity; when one implementation ticket suffices, retain that ticket instead of manufacturing a child tree. Continue when its checkpoint is satisfied, without another publication question.
+7. If tracker publication requires links or identifiers in the documents from step 4, commit and normally push only those document updates and use the last pushed commit as the baseline. Record a visible handoff on the parent issue:
 
    ```text
    Implementation base: <integration branch>
    Planning baseline: <commit SHA>
-   Planning artifacts:
-   - <path>
+   Planning artifacts: <paths of documents from grill-with-docs, or none>
    ```
 
-   Give every child its native parent relationship, blockers, acceptance criteria, implementation base, and planning baseline. Keep shared context on the parent instead of duplicating its full specification into every child.
+   Give every child its native parent relationship, blockers, acceptance criteria, implementation base, and planning baseline. Keep shared context on the parent instead of duplicating its full specification into every child. For a single implementation issue, put the handoff on that issue.
 8. Fetch the remote integration branch and verify that the recorded baseline is reachable from it and contains every declared planning artifact. Re-read the issue tree and verify its parent, blocker, and baseline metadata.
 9. Report the published branch, baseline commit, planning artifacts, and tickets that are ready to implement. Keep the integration worktree for later author-side phases.
 
