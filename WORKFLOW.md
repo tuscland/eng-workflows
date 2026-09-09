@@ -10,23 +10,25 @@ Use `plan-issue-tree` to prepare tracked work, then `implement-ticket` to implem
 - Only repository documents produced by `grill-with-docs`, typically ADRs, research notes, and glossary changes, are committed during planning.
 - The integration branch and planning worktree are created before discovery. Documents are pushed before tickets are declared ready. If no document changed, the existing pushed tip is the baseline; no artificial artifact or empty commit is needed.
 
-The parent issue records:
+The handoff records:
 
 ```text
 Implementation base: integration/<parent>
+Implementation branch: integration/<parent> for one ticket; a ticket branch for each child
+Pull request base: <target branch> for one ticket; integration/<parent> for each child
 Planning baseline: <commit SHA>
 Planning artifacts:
 - docs/adr/<file>
 - docs/research/<file>
 ```
 
-Use `none` when there are no artifacts. Each child has its native parent relationship, blockers, acceptance criteria, implementation base, and planning baseline. A single implementation issue can hold the entire handoff without a child tree.
+Use `none` when there are no artifacts. Each child has its native parent relationship, blockers, acceptance criteria, branch fields, and planning baseline. A single implementation issue holds the entire handoff without a child tree; its integration branch is also its implementation branch, and its pull request targets the original target branch.
 
 Before implementing a child, verify that the baseline and artifacts are reachable from its fetched base and completed blockers have landed there. Missing handoffs must be resolved, not replaced with another base.
 
 ## Local implementation loop
 
-Start `$implement-ticket <ticket>` in the author conversation. That same agent implements, coordinates reviews, and addresses findings. It creates a ticket branch and worktree under the repository's `.worktrees/` directory and uses the repository-required isolated test environment.
+Start `$implement-ticket <ticket>` in the author conversation. That same agent implements, coordinates reviews, and addresses findings. For a single ticket it reuses the integration branch and planning worktree. For a child ticket it creates the declared ticket branch and worktree under the repository's `.worktrees/` directory. It uses the repository-required isolated test environment in both cases.
 
 A separate reviewer checks the exact local commit in a detached worktree. It receives the pinned specification and local reports, not the author's implementation conversation. `/code-review` runs its independent Standards and Spec subagents; the author waits until they finish.
 
@@ -49,7 +51,7 @@ The initial review is followed by at most three correction-and-review cycles. Re
 
 ## Local handoff
 
-Review state lives under the common Git directory at `ticket-workflows/<ticket-key>/<run-id>/`. The agent prints this path. The run records its specification snapshot, base and candidate commits, check results, cycle count, phase, findings, and responses. These files are neither committed nor posted to GitHub.
+Review state lives under the common Git directory at `ticket-workflows/<ticket-key>/<run-id>/`. The agent prints this path. The run records its specification snapshot, base and candidate commits, check results, cycle count, phase, findings, responses, and substantive human decisions. These raw coordination files are neither committed nor uploaded. The final pull request description ends with a concise record of the correction-loop count, findings from each completed review pass, and human decisions requested and resolved.
 
 The [local loop contract](skills/implement-ticket/references/local-review-loop.md) defines the precise state and resumption rules. All review agents normally share this local repository. A reviewer on another machine needs an explicit transfer of the unpublished commits and run.
 
@@ -59,9 +61,9 @@ These skills describe an agent-operated workflow with persisted state. They do n
 
 ## Publication and stopping
 
-Only `implement-ticket` publishes. It requires a complete clean review of the exact current commit/specification, passing checks, a clean author worktree, and unchanged remote publication inputs. It then normally pushes the reviewed history, opens or updates the ticket's draft PR, and verifies its head, base, and ticket link. The PR summarizes the resulting change and validation; review conversations remain local.
+Only `implement-ticket` publishes. It requires a complete clean review of the exact current commit/specification, passing checks, a clean author worktree, and reconciled remote publication inputs. It then normally pushes the reviewed history, opens or updates the ticket's draft PR, and verifies its head, base, and ticket link. The PR summarizes the resulting change, validation, and local review record; raw review conversations remain local.
 
-For child tickets, the PR targets the declared integration branch. A standalone ticket may target its declared target branch. Retain the author worktree and run after completion.
+For child tickets, the PR targets the declared integration branch. For a single planned implementation ticket, the integration branch is the implementation branch and its PR targets the original target branch. A standalone unplanned ticket may target its declared target branch. Retain the author worktree and run after completion.
 
 | Phase | Authorized by invocation | Human attention |
 | --- | --- | --- |

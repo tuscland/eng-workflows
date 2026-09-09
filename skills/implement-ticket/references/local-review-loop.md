@@ -14,7 +14,7 @@ Resolve `git rev-parse --path-format=absolute --git-common-dir`. Store each run 
 
 Keep:
 
-- `run.md`: ticket/spec source and revision; target branch and pinned base SHA; planning references; author branch/worktree and agent identity; initial remote implementation head or `absent`; candidate and verification evidence; correction attempts started; current phase/state; report paths; publication progress/URL.
+- `run.md`: ticket/spec source and revision; implementation base, implementation branch, pull-request base, and pinned review-base SHA (the planning baseline for planned work); planning references; author worktree and agent identity; initial remote implementation head or `absent`; candidate and verification evidence; correction attempts started; current phase/state; report paths; substantive human decision requests and resolutions; publication progress/URL.
 - `spec.md`: a snapshot of the specification, acceptance criteria, and required parent context, with source revision or content hash. Review uses this explicit snapshot instead of rediscovering a spec from commit messages.
 - `review-<cycle>-<attempt>.md`: complete reviewer report, with a distinct filename for each retry so prior reports survive.
 - `response-<cycle>.md`: the author's dispositions, evidence, input/resulting SHAs, and checks for that correction.
@@ -47,9 +47,43 @@ Only `implement-ticket` publishes, when:
 
 1. The latest complete review is clean for the exact current commit and spec snapshot.
 2. Required checks passed for that candidate, the author worktree is clean, and commits contain only ticket-related work.
-3. A fresh fetch confirms the target still matches the pinned base and the remote implementation branch matches its recorded state. Unexpected movement requires reconciliation and renewed review, not a silent rebase or force-push.
+3. A fresh fetch confirms the implementation base still contains the pinned planning baseline and the remote implementation branch matches its recorded state. Reconcile unexpected movement in the implementation or pull-request base and renew review whenever it changes the reviewed diff; never silently rebase or force-push.
 4. No pending decision, blocker, or exhausted nonconverging loop remains.
 
 Push the reviewed commit history normally, then create or update its draft PR under repository conventions. Do not squash or rewrite after review. Keep reports, responses, and coordination off the tracker and out of commits. Never merge or close issues.
 
 Record publication progress. If the push succeeds but PR creation fails, verify that same remote head and resume only the missing publication step; reuse an existing PR rather than creating a duplicate.
+
+## Pull request review record
+
+Append a concise review record to the end of the pull request description without replacing the repository's normal template. Build it from the completed reports, responses, and decision history in the local run; do not rely on conversation memory or link local files.
+
+Report both counts so the result is unambiguous:
+
+- **Correction loops** is the number of completed correction/fix cycles. The initial review is not a correction loop, and incomplete or invalid review retries do not count.
+- **Review passes** is the number of completed reviews, including review 0 and the review after each completed correction.
+
+For each completed review pass, list every actionable finding in that report with its stable ID, concise summary, and status or disposition at that pass. Say `None` when the pass was clean. Preserve enough detail to explain what the loop discovered and how it converged, without copying full reports or internal discussion.
+
+List every substantive product, architecture, scope, or implementation decision requested from a human during the run, together with the resulting decision. Exclude routine tool and publication permission prompts. Say `None` when no substantive decision was requested.
+
+Use this shape:
+
+```markdown
+## Local review record
+
+- Correction loops: <count>
+- Review passes: <count>
+
+### Review 0 — <outcome>
+
+- `<finding ID>` — <finding summary>; <status or disposition>
+
+### Review 1 — <outcome>
+
+- None
+
+### Human decisions requested
+
+- <decision requested> — <resulting decision>
+```

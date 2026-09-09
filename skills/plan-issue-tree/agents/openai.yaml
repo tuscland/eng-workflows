@@ -1,6 +1,6 @@
 interface:
   display_name: "Plan Issue Tree"
-  short_description: "Publish a durable multi-ticket implementation plan"
+  short_description: "Publish a durable tracked implementation plan"
   default_prompt: "Use $plan-issue-tree to plan this change and publish its implementation handoff."
 policy:
   allow_implicit_invocation: false
