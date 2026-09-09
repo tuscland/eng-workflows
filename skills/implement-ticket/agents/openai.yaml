@@ -1,6 +1,6 @@
 interface:
   display_name: "Implement Ticket"
-  short_description: "Implement one ticket in an isolated worktree"
-  default_prompt: "Use $implement-ticket to implement this ticket and open its draft pull request."
+  short_description: "Implement, review locally, and publish a clean ticket"
+  default_prompt: "Use $implement-ticket to implement this ticket, run the local review/fix loop, and publish only the clean result."
 policy:
   allow_implicit_invocation: false

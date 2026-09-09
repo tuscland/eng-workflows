@@ -1,6 +1,0 @@
-interface:
-  display_name: "Review Ticket"
-  short_description: "Review a ticket's linked implementation independently"
-  default_prompt: "Use $review-ticket to review the implementation linked to this ticket."
-policy:
-  allow_implicit_invocation: false

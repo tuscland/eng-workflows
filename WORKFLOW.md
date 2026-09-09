@@ -1,53 +1,16 @@
 # Tracked Delivery Workflow
 
-## Purpose
+Use `plan-issue-tree` to prepare tracked work, then `implement-ticket` to implement, review locally, and publish the finished result. The specialist skills own discovery, specification, TDD, and review analysis; these wrappers coordinate branches, handoffs, and delivery.
 
-This workflow carries a substantial tracked change from discovery through implementation and independent review without losing planning context between agents.
+## Planning
 
-It composes existing planning, implementation, and code-review skills. Those skills own the quality of their specialist work. The four workflow skills in this repository own the surrounding lifecycle:
+`plan-issue-tree` runs `grill-with-docs`, `to-spec`, and `to-tickets` in sequence, honoring their existing user checkpoints without an extra publication approval.
 
-- durable documents produced by discovery;
-- issue-tree and blocker state;
-- integration and implementation branches;
-- isolated worktrees and test environments;
-- cross-agent handoffs;
-- commit, push, and publication approval boundaries.
+- Specifications, acceptance criteria, ticket relationships, and planning handoffs live in the tracker.
+- Only repository documents produced by `grill-with-docs`, typically ADRs, research notes, and glossary changes, are committed during planning.
+- The integration branch and planning worktree are created before discovery. Documents are pushed before tickets are declared ready. If no document changed, the existing pushed tip is the baseline; no artificial artifact or empty commit is needed.
 
-The central invariant is:
-
-> No implementation worktree may be created until every required document produced by discovery is committed to and reachable from the remote branch used as that worktree's base, and its specification and ticket metadata are published in the tracker.
-
-## Roles
-
-The author agent normally performs planning, implementation, and review response. It may retain its integration and implementation worktrees across those phases.
-
-The reviewer agent is separate and may run in a different environment. It receives no conversation memory or filesystem state from the author. It reconstructs the review from pushed commits, issues, pull-request data, and published reviews.
-
-Local state is a convenience within one agent. Remote Git history and tracker data are the contract between agents.
-
-## Commands
-
-| Command | Responsibility | Specialist skill |
-| --- | --- | --- |
-| `/plan-issue-tree` | Create the integration branch, publish discovery documents, and establish the specification and issue tree in the tracker | `/grill-with-docs`, `/to-spec`, `/to-tickets` |
-| `/implement-ticket` | Validate one ticket's handoff, implement it in an isolated worktree, and open a draft pull request | `/implement` |
-| `/review-ticket` | Independently review the implementation linked to a ticket | `/code-review` |
-| `/address-review` | Verify findings, implement accepted fixes, commit locally, and prepare a reply | `/implement` |
-
-## Durable state
-
-The workflow does not use a private manifest or hidden marker. State lives in artifacts every participating agent can retrieve:
-
-- The integration branch contains only the repository documents created or updated by `/grill-with-docs`, typically ADRs, research notes, and glossary changes.
-- The tracker contains the authoritative specification, tickets, acceptance criteria, dependencies, and handoff. Temporary drafts are not repository deliverables.
-- The parent issue records the integration branch, planning baseline commit, and paths of the documents produced by `/grill-with-docs`, or `none` when there are no such documents.
-- Native parent, child, and blocker relationships describe the implementation graph.
-- Each child ticket contains its acceptance criteria, implementation base, and planning baseline.
-- Each implementation pull request links its ticket and targets the ticket's declared base.
-- Each published review includes `Reviewed commit: <SHA>` and stable finding identifiers.
-- Each response maps those identifiers to fixes, rebuttals, or requested decisions.
-
-A parent handoff uses this visible shape:
+The parent issue records:
 
 ```text
 Implementation base: integration/<parent>
@@ -57,94 +20,54 @@ Planning artifacts:
 - docs/research/<file>
 ```
 
-Repository conventions may choose different branch names or paths. The fields and reachability invariant remain the same.
+Use `none` when there are no artifacts. Each child has its native parent relationship, blockers, acceptance criteria, implementation base, and planning baseline. A single implementation issue can hold the entire handoff without a child tree.
 
-## Branch and worktree model
+Before implementing a child, verify that the baseline and artifacts are reachable from its fetched base and completed blockers have landed there. Missing handoffs must be resolved, not replaced with another base.
 
-For a multi-ticket change:
+## Local implementation loop
 
-```text
-target branch
-`-- integration branch and planning worktree
-    |-- ticket branch and implementation worktree
-    |-- ticket branch and implementation worktree
-    `-- ticket branch and implementation worktree
+Start `$implement-ticket <ticket>` in the author conversation. That same agent implements, coordinates reviews, and addresses findings. It creates a ticket branch and worktree under the repository's `.worktrees/` directory and uses the repository-required isolated test environment.
+
+A separate reviewer checks the exact local commit in a detached worktree. It receives the pinned specification and local reports, not the author's implementation conversation. `/code-review` runs its independent Standards and Spec subagents; the author waits until they finish.
+
+```mermaid
+flowchart TD
+    A[Author implements, verifies, commits locally] --> R[Independent local review]
+    R --> D{Outcome}
+    D -->|Clean and checks pass| P[Push reviewed work and open draft PR]
+    D -->|Human decision or blocker| H[Pause with local work preserved]
+    D -->|Findings| C{Corrections attempted}
+    C -->|Fewer than 3| F[Same author fixes or rebuts]
+    F --> V[Verify and commit if changed]
+    V --> R
+    C -->|3| L[Stop without publishing]
 ```
 
-The integration branch exists before planning begins. Planning artifacts are created inside its worktree and pushed before implementation starts.
+`implement-ticket` is the only entry point and loop coordinator. It uses `/implement` for implementation, tests, and local commits. Its independent reviewer supplies the embedded review step; the same author handles corrections within this loop.
 
-Each child branch starts from the fetched remote integration branch. Child pull requests target the integration branch. A later integration pull request may target the original target branch, but these workflow skills never merge it automatically.
+The initial review is followed by at most three correction-and-review cycles. Rebuttal-only responses count. Every correction receives independent review, including the third, and only the reviewer closes findings. Interruptions and repeated invocations resume the recorded phase without resetting the budget.
 
-A standalone ticket may branch directly from its declared target branch and does not require an integration branch or planning baseline.
+## Local handoff
 
-All repository worktrees live under the repository's `.worktrees/` directory:
+Review state lives under the common Git directory at `ticket-workflows/<ticket-key>/<run-id>/`. The agent prints this path. The run records its specification snapshot, base and candidate commits, check results, cycle count, phase, findings, and responses. These files are neither committed nor posted to GitHub.
 
-- The planning worktree is retained by the author through delivery.
-- Each ticket has its own implementation worktree, retained for review response.
-- The reviewer uses a detached worktree at the exact pull-request head.
-- Review fixes are never made in the detached review worktree.
+The [local loop contract](skills/implement-ticket/references/local-review-loop.md) defines the precise state and resumption rules. All review agents normally share this local repository. A reviewer on another machine needs an explicit transfer of the unpublished commits and run.
 
-## Phase 1: plan the issue tree
+A normal invocation delegates review automatically when the agent environment supports subagents. Resume an interrupted run with `$implement-ticket <local-run-path>`. Without delegation, report that limitation instead of substituting author self-review.
 
-`/plan-issue-tree` creates the integration branch and worktree before invoking the planning skills. This ensures every ADR and research note is created in the branch that will become the common ancestor of the implementation tickets.
+These skills describe an agent-operated workflow with persisted state. They do not install a background daemon or an independent loop-enforcement runtime.
 
-The author runs `/grill-with-docs`, `/to-spec`, and `/to-tickets` in sequence, continuing as each skill's own checkpoints are satisfied. The wrapper adds no publication approval. Discovery findings and local drafts are intermediate work; completion requires the published specification, ticket metadata, and verified handoff.
+## Publication and stopping
 
-Explicit invocation authorizes validating, committing, and normally pushing only the documents produced by `/grill-with-docs`. This happens before `/to-spec` publishes the specification and `/to-tickets` publishes the approved breakdown, so every referenced document is already available when a ticket becomes ready. If discovery produces no document changes, the pushed integration tip is the baseline; no empty commit or placeholder document is needed.
+Only `implement-ticket` publishes. It requires a complete clean review of the exact current commit/specification, passing checks, a clean author worktree, and unchanged remote publication inputs. It then normally pushes the reviewed history, opens or updates the ticket's draft PR, and verifies its head, base, and ticket link. The PR summarizes the resulting change and validation; review conversations remain local.
 
-The upstream interview, test-seam, and breakdown checkpoints still apply, with existing answers and approvals respected. A detailed existing issue is input to specification, not a substitute for completing the sequence. A breakdown may retain one implementation issue without creating children.
+For child tickets, the PR targets the declared integration branch. A standalone ticket may target its declared target branch. Retain the author worktree and run after completion.
 
-The workflow records the baseline and document links on the parent issue and each child's handoff, then verifies remote state. If issue identifiers are backfilled into discovery documents, the normally pushed follow-up commit becomes the baseline. Specifications, publication runbooks, and handoffs are not duplicated in repository files.
-
-A ticket is ready only when its base exists remotely, its baseline is reachable from that base, its planning artifacts exist at that baseline, and its blockers are represented in the tracker.
-
-## Phase 2: implement a ticket
-
-`/implement-ticket` starts from the ticket rather than an assumed local checkout. It resolves and verifies the ticket's declared base before creating a branch or worktree.
-
-For child tickets, a missing integration branch, baseline, or planning artifact is a planning failure. The implementation workflow stops rather than repairing it or falling back to the target branch.
-
-Once ready, the workflow delegates the actual implementation to `/implement`. After successful verification it commits, pushes, and opens the draft pull request automatically. The explicit invocation authorizes those publication steps, so there is no second approval gate at the end of implementation.
-
-## Phase 3: review a ticket
-
-`/review-ticket` is designed for an independent reviewer with no author-side context. The ticket is the canonical input; the workflow resolves its linked implementation pull request and asks when none or several are plausible.
-
-The reviewer checks out the exact pushed head in a detached worktree and delegates detailed analysis to `/code-review`. A first review compares the full implementation with its actual pull-request base. A later review uses the commit recorded by the previous review as its fixed point and rechecks every prior finding.
-
-The review is drafted locally and shown to the user. Nothing is posted until approval. Immediately before posting, the workflow verifies that the pull-request head is still the reviewed commit.
-
-## Phase 4: address a review
-
-`/address-review` returns to the author-side implementation branch. It reuses the implementation worktree when possible and can reconstruct it from the remote branch when necessary.
-
-The workflow gathers the selected review and all associated unresolved findings. It verifies each finding rather than treating the review as infallible. Accepted findings become the specification passed to `/implement`; unsupported findings receive evidence-backed rebuttals; product or architecture decisions return to the user.
-
-Verified fixes are committed locally without another approval gate. The workflow then presents the commit and complete reply and waits. Approval authorizes both the normal push and publication of the reply.
-
-The push always happens first. The reply is posted only after the remote pull-request head is verified to equal the local fix commit. A failed or stale push therefore cannot produce a reply claiming unavailable fixes.
-
-## Approval boundaries
-
-| Phase | Automatic | Requires approval |
+| Phase | Authorized by invocation | Human attention |
 | --- | --- | --- |
-| Plan | Branch/worktree creation; commit and normal push of discovery documents; upstream specification and ticket publication | Upstream interview, test-seam, and ticket-breakdown checkpoints; ambiguous ownership or actual blockers |
-| Implement | Commit, normal push, and draft pull-request creation after successful verification | Product or architecture decisions; ambiguous or missing handoff state |
-| Review | Read-only inspection and draft preparation | Posting the review |
-| Address review | Verified fixes and local commit | Pushing the fix commit and posting the reply |
+| Plan | Discovery-document commits/pushes; specification and ticket publication | Upstream planning checkpoints; ambiguous ownership |
+| Implement | Local implementation and review loop; final publication after convergence | Product decisions, missing handoffs, blockers, nonconvergence after three cycles |
+| Review | Independent local inspection and report | Product or architecture decisions |
+| Correct findings | Verified fixes, local commit, and response | Product or architecture decisions |
 
-Approval is scoped to the named actions and current remote heads. It never authorizes force-pushing, merging, closing issues, resolving threads, or unrelated changes.
-
-## Failure rules
-
-Stop rather than guessing when:
-
-- the parent, ticket, linked pull request, target review, branch base, or commit scope is ambiguous;
-- an integration branch or planning baseline is missing;
-- a planning artifact is not present at the recorded baseline;
-- a blocker has not landed on the implementation base;
-- verification fails;
-- the pull-request head changes after inspection;
-- a push fails or the remote head does not match the expected commit.
-
-These stops protect the durable handoff. They are not invitations to create a replacement branch, copy an unpublished file between agents, or silently change the ticket's base.
+On a decision, verification failure, stale input, or exhausted nonconverging loop, preserve local work and report the unresolved matter. A changed candidate invalidates its previous clean review. An interrupted publication resumes only its missing steps after verifying the remote head. None of these workflows force-push, merge, close issues, or use tracker reviews as a message board.

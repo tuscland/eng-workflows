@@ -4,16 +4,14 @@ Reusable agent skills for software delivery and team visibility.
 
 ## Agentic coding workflow
 
-These skills form an orchestration layer on top of Matt Pocock's planning, implementation, and code-review skills. They preserve that specialist workflow while adding durable planning handoffs, integration branches, isolated worktrees, cross-agent review state, and explicit publication boundaries.
+These skills form an orchestration layer on top of Matt Pocock's planning, implementation, and code-review skills. They add durable planning handoffs, isolated worktrees, and a local author/reviewer loop that publishes only the finished work.
 
 | Skill | Purpose | Builds on |
 | --- | --- | --- |
 | [`plan-issue-tree`](skills/plan-issue-tree/SKILL.md) | Publish discovery documents on an integration branch, then the specification, tickets, and handoff in the tracker. | `grill-with-docs`, `to-spec`, `to-tickets` |
-| [`implement-ticket`](skills/implement-ticket/SKILL.md) | Validate a ticket's planning handoff, implement it in an isolated worktree, and open its draft pull request. | `implement` |
-| [`review-ticket`](skills/review-ticket/SKILL.md) | Independently review the implementation linked to a ticket using only durable remote state. | `code-review` |
-| [`address-review`](skills/address-review/SKILL.md) | Verify review findings, implement accepted fixes, commit locally, and prepare the push and reply for approval. | `implement` |
+| [`implement-ticket`](skills/implement-ticket/SKILL.md) | Implement, coordinate up to three local correction/review cycles, then push the clean result and open its draft pull request. | `implement`, `code-review` |
 
-The author agent normally performs planning, implementation, and review response. Review runs in an independent agent and may use a different model or harness. Issues, pushed commits, pull-request data, and published reviews are therefore the handoff contract between phases.
+The author agent coordinates implementation and corrections. A separate reviewer uses the same local repository and reports through local files. Issues and pushed documents supply planning context; GitHub is not used for intermediate review conversations. A clean review and passing checks authorize final publication.
 
 See [Tracked Delivery Workflow](WORKFLOW.md) for the branch model, durable-state contract, approval boundaries, and complete lifecycle.
 

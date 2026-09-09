@@ -1,6 +1,0 @@
-interface:
-  display_name: "Address Review"
-  short_description: "Fix review findings and prepare an approved reply"
-  default_prompt: "Use $address-review to address the review for this ticket."
-policy:
-  allow_implicit_invocation: false
