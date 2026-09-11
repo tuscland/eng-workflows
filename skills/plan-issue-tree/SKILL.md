@@ -35,11 +35,12 @@ Pause for an unanswered decision, an upstream checkpoint, required tool authoriz
    Implementation base: <integration branch>
    Implementation branch: <integration branch for a single ticket; ticket branch for each child>
    Pull request base: <target branch for a single ticket; integration branch for each child>
+   Closing issue: <canonical owner/repository#number for this implementation ticket>
    Planning baseline: <commit SHA>
    Planning artifacts: <paths of documents from grill-with-docs, or none>
    ```
 
-   Give every child its native parent relationship, blockers, acceptance criteria, implementation base, implementation branch, pull-request base, and planning baseline. Choose ticket branch names using repository conventions, but leave their creation to `implement-ticket`. Keep shared context on the parent instead of duplicating its full specification into every child. For a single implementation issue, put the handoff on that issue and use the integration branch as its implementation branch.
+   Give every child its native parent relationship, blockers, acceptance criteria, implementation base, implementation branch, pull-request base, canonical closing issue, and planning baseline. Choose ticket branch names using repository conventions, but leave their creation to `implement-ticket`. Keep shared context on the parent instead of duplicating its full specification into every child. For a single implementation issue, put the handoff on that issue and use the integration branch as its implementation branch.
 8. Fetch the remote integration branch and verify that the recorded baseline is reachable from it and contains every declared planning artifact. Re-read the issue tree and verify its parent, blocker, and baseline metadata.
 9. Report the published branch, baseline commit, planning artifacts, and tickets that are ready to implement. Keep the integration worktree for later author-side phases.
 

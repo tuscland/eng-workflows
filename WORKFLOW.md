@@ -16,6 +16,7 @@ The handoff records:
 Implementation base: integration/<parent>
 Implementation branch: integration/<parent> for one ticket; a ticket branch for each child
 Pull request base: <target branch> for one ticket; integration/<parent> for each child
+Closing issue: owner/repository#<implementation-ticket>
 Planning baseline: <commit SHA>
 Planning artifacts:
 - docs/adr/<file>
@@ -61,9 +62,9 @@ These skills describe an agent-operated workflow with persisted state. They do n
 
 ## Publication and stopping
 
-Only `implement-ticket` publishes. It requires a complete clean review of the exact current commit/specification, passing checks, a clean author worktree, and reconciled remote publication inputs. It then normally pushes the reviewed history, opens or updates the ticket's draft PR, and verifies its head, base, and ticket link. The PR summarizes the resulting change, validation, and local review record; raw review conversations remain local.
+Only `implement-ticket` publishes. It requires a complete clean review of the exact current commit/specification, passing checks, a clean author worktree, and reconciled remote publication inputs. It then normally pushes the reviewed history, opens or updates the ticket's draft PR, and verifies its head, base, and provider-native closing association. On GitHub the body uses `Closes #<issue>` (or the cross-repository form), not a bare link. The PR summarizes the resulting change, validation, and local review record; raw review conversations remain local.
 
-For child tickets, the PR targets the declared integration branch. For a single planned implementation ticket, the integration branch is the implementation branch and its PR targets the original target branch. A standalone unplanned ticket may target its declared target branch. Retain the author worktree and run after completion.
+For child tickets, the PR targets the declared integration branch. Its closing directive associates the PR with the child, but GitHub closes the issue only when the change reaches the default branch; the final integration PR must therefore repeat and verify the closing directives for all delivered children. For a single planned implementation ticket, the integration branch is the implementation branch and its PR targets the original target branch. A standalone unplanned ticket may target its declared target branch. Retain the author worktree and run after completion.
 
 | Phase | Authorized by invocation | Human attention |
 | --- | --- | --- |
