@@ -14,7 +14,7 @@ Resolve `git rev-parse --path-format=absolute --git-common-dir`. Store each run 
 
 Keep:
 
-- `run.md`: canonical ticket repository and issue number; ticket/spec source and revision; implementation base, implementation branch, pull-request base, and pinned review-base SHA (the planning baseline for planned work); planning references; author worktree and agent identity; initial remote implementation head or `absent`; candidate and verification evidence; correction attempts started; current phase/state; report paths; substantive human decision requests and resolutions; publication progress/URL and verified closing association.
+- `run.md`: canonical ticket repository, issue number, and node ID; ticket/spec source and revision; project URL/ID, item ID, status field/option IDs, previous status, and verified tracker setup; implementation base, implementation branch, pull-request base, and pinned review-base SHA (the planning baseline for planned work); planning references; author worktree and agent identity; initial remote implementation head or `absent`; candidate and verification evidence; correction attempts started; current phase/state; report paths; substantive human decision requests and resolutions; publication progress/URL and verified native ticket association; prioritized cleanup opportunities.
 - `spec.md`: a snapshot of the specification, acceptance criteria, and required parent context, with source revision or content hash. Review uses this explicit snapshot instead of rediscovering a spec from commit messages.
 - `review-<cycle>-<attempt>.md`: complete reviewer report, with a distinct filename for each retry so prior reports survive.
 - `response-<cycle>.md`: the author's dispositions, evidence, input/resulting SHAs, and checks for that correction.
@@ -24,6 +24,18 @@ The author owns run state and responses; the reviewer owns reports. Write output
 Each review records the candidate SHA, pinned base, spec identity, cycle, and outcome (`clean`, `findings`, `needs-human`, or `blocked`). Preserve separate Standards and Spec sections, stable IDs such as `STD-001`/`SPEC-001`, and every prior finding's `open`, `partial`, or `closed` status with evidence. Only the reviewer closes findings. `clean` requires both axes complete and no unresolved actionable finding or decision.
 
 Every pass reviews the full ticket diff from the pinned base and rechecks prior findings. A changed candidate or specification invalidates an earlier clean report. A rebuttal-only response still needs review, even at the same SHA.
+
+## Ticket project and status
+
+At implementation startup, resolve the intended project from the explicit request or repository/ticket handoff. Otherwise use the ticket's existing project or its parent's project when that identifies one unambiguous project. Inspect repository-linked projects when needed; do not choose among multiple plausible projects by name similarity. Associate the implementation ticket itself, even when its parent already belongs to the project. Preserve other project memberships.
+
+On GitHub Projects v2:
+
+1. Resolve the canonical issue node ID, project ID, and the project's actual Status field and In progress option IDs (or the equivalent active-work option declared by repository conventions). The issue's open/closed state and a label are not the project status.
+2. Find the issue's existing project item, following pagination. If absent, call `addProjectV2ItemById` with an input containing the project ID and the issue node ID as `contentId`. Retain the returned item ID; do not create a draft issue or duplicate item.
+3. If needed, use `updateProjectV2ItemFieldValue` with that project ID, item ID, Status field ID, and `value: {singleSelectOptionId: <in-progress-option-id>}`. Read back the issue's project membership and the item's Status; record the actual verified values in `run.md`.
+
+On resume, finish only incomplete setup. Re-read remote state before a mutation; do not reset a later review/done status while resuming review or publication. If a project or status mapping is ambiguous, or access prevents the update, record the missing decision or permission and continue independent local work. Do not invent a project/status option or claim startup tracking is complete. Invocation authorizes these specific metadata updates without another approval checkpoint; it does not authorize changing unrelated project fields.
 
 ## Three-cycle limit
 
@@ -58,9 +70,34 @@ Record publication progress. If the push succeeds but PR creation fails, verify 
 
 Put the provider-native closing directive for the canonical ticket in the pull request body. For GitHub, use `Closes #<number>` when the issue and pull request share a repository, or `Closes <owner>/<repository>#<number>` when they do not. Preserve or restore it when updating an existing pull request. Place it immediately before the local review record so that record remains the final section.
 
-After creating or updating the pull request, read back the remote body and provider relationship. On GitHub, when the pull request targets the default branch, verify that `closingIssuesReferences` contains the exact repository and issue number recorded in `run.md`; matching only a number is insufficient across repositories. For a non-default integration base, verify the issue cross-reference and the exact directive in the remote body, then record that automatic closure is deferred to the final integration pull request. A bare issue URL or textual mention does not satisfy either check.
+GitHub [interprets closing keywords only for pull requests targeting the default branch](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue). On an integration branch, `Closes #123` creates no native link. A mention or timeline cross-reference is not the relationship shown in the issue's Development section.
+
+After creating or updating the pull request, read back its body and `closingIssuesReferences`, following pagination. Require the exact issue node ID, repository, and number recorded for the ticket. If missing, resolve the canonical issue and pull request node IDs and add a manual native relationship with GitHub's GraphQL mutation:
+
+```graphql
+mutation LinkTicket($issueId: ID!, $pullRequestId: ID!) {
+  addCloseIssueReferences(input: {
+    issueId: $issueId,
+    pullRequestIds: [$pullRequestId]
+  }) {
+    issue { id }
+  }
+}
+```
+
+This operation associates the PR with the issue; it does not close the issue immediately. Preserve existing links. Use the same operation for a cross-repository ticket, resolving each node in its own repository. Check API errors, then independently re-read `closingIssuesReferences` and require the canonical ticket for **every** base branch. `Issue.closedByPullRequestsReferences(userLinkedOnly: true)` can also confirm the manual link from the ticket side. A successful mutation response or retained directive alone is insufficient.
+
+If the relationship remains missing after the write and a bounded read-back retry, or the provider lacks the operation or required access, record publication as incomplete with the exact blocker and existing PR URL. Preserve the reviewed work and retry only the missing association after resolving the blocker; do not create another PR, change its declared base, or substitute a comment. Keep the closing directive immediately before the final review record when editing the body.
 
 GitHub closes an associated issue automatically only when the closing change reaches the repository's default branch. A child pull request targeting an integration branch still carries its own closing directive for traceability, but the eventual integration-to-default pull request must repeat the closing directives for every delivered child ticket. Do not report those tickets as auto-closing until that final pull request contains and verifies the associations.
+
+## Completion and cleanup opportunities
+
+After implementation and review, inspect the final diff and nearby code already encountered for useful follow-up cleanup, dead code removal, or debt reduction. Record the opportunities in `run.md` and include them in the final user-facing handoff alongside the project/status, commit, PR, verified native ticket link, checks, correction/review counts, and local report path.
+
+Use a short ranked table with opportunity and code evidence, expected impact, estimated cost, and priority rationale. Express impact concretely (for example, a removed failure mode, less maintenance, or reduced runtime/bundle cost); estimate effort as small/medium/large with a brief explanation of scope and risk. Favor high-impact, low-cost work, explaining any different ordering due to dependencies or risk. Check callers, exports, configuration, and dynamic use before calling code dead; label uncertain candidates as requiring verification. Say when no worthwhile opportunity was found rather than inventing recommendations.
+
+These are follow-up recommendations, not additional implementation or newly filed tickets. Required correctness fixes still belong in the review/fix loop. Do not alter the reviewed candidate to implement optional cleanup after a clean review; doing so requires renewed verification and review.
 
 ## Pull request review record
 
