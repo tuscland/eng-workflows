@@ -4,12 +4,13 @@ Reusable agent skills for software delivery and team visibility.
 
 ## Agentic coding workflow
 
-These skills form an orchestration layer on top of Matt Pocock's planning, implementation, and code-review skills. They add durable planning handoffs, isolated worktrees, and a local author/reviewer loop that publishes only the finished work.
+These skills form an orchestration layer on top of Matt Pocock's planning, implementation, and code-review skills. They add durable planning handoffs, isolated worktrees, and a local author/reviewer loop that publishes reviewed implementation and cleanup commits.
 
 | Skill | Purpose | Builds on |
 | --- | --- | --- |
 | [`plan-issue-tree`](skills/plan-issue-tree/SKILL.md) | Publish discovery documents on an integration branch, then the specification, tickets, and handoff in the tracker. | `grill-with-docs`, `to-spec`, `to-tickets` |
 | [`implement-ticket`](skills/implement-ticket/SKILL.md) | Implement, coordinate up to three local correction/review cycles, then push the clean result and open its draft pull request. | `implement`, `code-review` |
+| [`finalize-parent`](skills/finalize-parent/SKILL.md) | Open the integration draft PR, execute worthwhile cleanup, test end to end, produce an HTML demo and code explanation, and independently review the full delivery. | `implement`, `code-review` |
 
 The author agent coordinates implementation and corrections. A separate reviewer uses the same local repository and reports through local files. Issues and pushed documents supply planning context; GitHub is not used for intermediate review conversations. A clean review and passing checks authorize final publication.
 

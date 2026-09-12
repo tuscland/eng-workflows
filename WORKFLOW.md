@@ -1,6 +1,6 @@
 # Tracked Delivery Workflow
 
-Use `plan-issue-tree` to prepare tracked work, then `implement-ticket` to implement, review locally, and publish the finished result. The specialist skills own discovery, specification, TDD, and review analysis; these wrappers coordinate branches, handoffs, and delivery.
+Use `plan-issue-tree` to prepare tracked work, `implement-ticket` to implement and review each ticket, and `finalize-parent` to clean up and review the combined parent delivery. The specialist skills own discovery, specification, TDD, and review analysis; these wrappers coordinate branches, handoffs, and delivery.
 
 ## Planning
 
@@ -48,7 +48,7 @@ flowchart TD
     C -->|3| L[Stop without publishing]
 ```
 
-`implement-ticket` is the only entry point and loop coordinator. It uses `/implement` for implementation, tests, and local commits. Its independent reviewer supplies the embedded review step; the same author handles corrections within this loop.
+`implement-ticket` coordinates the single-ticket loop. It uses `/implement` for implementation, tests, and local commits. Its independent reviewer supplies the embedded review step; the same author handles corrections within this loop.
 
 The initial review is followed by at most three correction-and-review cycles. Rebuttal-only responses count. Every correction receives independent review, including the third, and only the reviewer closes findings. Interruptions and repeated invocations resume the recorded phase without resetting the budget.
 
@@ -64,16 +64,29 @@ These skills describe an agent-operated workflow with persisted state. They do n
 
 ## Publication and stopping
 
-Only `implement-ticket` publishes. It requires a complete clean review of the exact current commit/specification, passing checks, a clean author worktree, and reconciled remote publication inputs. It then normally pushes the reviewed history, opens or updates the ticket's draft PR, and verifies its head, base, and provider-native closing association. On GitHub the body uses `Closes #<issue>` (or the cross-repository form). If the native association is missing, add it with `addCloseIssueReferences` and independently verify the exact ticket in `closingIssuesReferences` for every base branch. Text and timeline cross-references alone are insufficient; a missing native link leaves publication incomplete. The PR summarizes the resulting change, validation, and local review record; raw review conversations remain local.
+Each delivery skill owns publication for its run. `implement-ticket` requires a complete clean review of the exact current commit/specification, passing checks, a clean author worktree, and reconciled remote publication inputs. It then normally pushes the reviewed history, opens or updates the ticket's draft PR, and verifies its head, base, and provider-native closing association. On GitHub the body uses `Closes #<issue>` (or the cross-repository form). If the native association is missing, add it with `addCloseIssueReferences` and independently verify the exact ticket in `closingIssuesReferences` for every base branch. Text and timeline cross-references alone are insufficient; a missing native link leaves publication incomplete. The PR summarizes the resulting change, validation, cleanup opportunities, and local review record; raw review conversations remain local.
 
 For child tickets, the PR targets the declared integration branch. GitHub ignores closing keywords for this base, so explicitly establish the native relationship. Automatic closure remains deferred to the default branch; the final integration PR must repeat the closing directives and verify native associations for all delivered children. For a single planned implementation ticket, the integration branch is the implementation branch and its PR targets the original target branch. A standalone unplanned ticket may target its declared target branch. Retain the author worktree and run after completion.
 
-The final handoff includes verified project/status and PR-link metadata plus cleanup, dead code removal, and debt-reduction opportunities grounded in the code inspected. Rank these by expected impact and estimated effort, with code evidence and a brief priority rationale. Keep optional recommendations separate from required fixes and do not implement or file them automatically. Report when no worthwhile opportunity was found.
+The ticket PR and final handoff include cleanup, dead code removal, and debt-reduction opportunities grounded in the code inspected, ranked by expected impact and estimated effort with code evidence and a brief priority rationale. The handoff also includes verified project/status and PR-link metadata. Keep optional recommendations separate from required fixes; `implement-ticket` does not implement or file them automatically. Report when no worthwhile opportunity was found. Publishing these opportunities in the child PR lets parent finalization assess them without local child runs.
+
+## Parent finalization
+
+Run `$finalize-parent <parent-issue>` after the required child changes have landed on the integration branch. It reuses the integration worktree, reads the parent and complete child tree, and verifies actual delivery rather than relying on issue closure or child approvals. It opens or reuses a draft PR from the already-published integration branch to the original target branch before authoring cleanup.
+
+The author re-reads every child PR's cleanup opportunities, review record, relevant discussion, and code. It deduplicates and ranks candidates by impact, cost, confidence, and risk, executes the most promising bounded cleanup, and requests guidance for consequential scope or behavior choices. Older PRs without cleanup sections are assessed from their diffs and current code. Every candidate receives a disposition; no cleanup quota or extra ticket creation is required.
+
+End-to-end tests must exercise the integrated candidate's real user or consumer journeys, including interactions between children and important failure paths. This applies even when no cleanup is selected. Capture demonstrations from those runs and produce a self-contained HTML delivery report with acceptance-criteria coverage, observed results, screenshots/recordings or CLI/API transcripts, a guided code explanation, cleanup decisions, and review status. Keep the report and evidence with the local run, return a clickable HTML artifact, and use the repository's authorized artifact channel when available. Failed, blocked, or skipped required scenarios and missing report evidence prevent finalization.
+
+Final review covers the full parent diff from the target/integration merge base, including all child changes, their interactions, planning documents, cleanup, end-to-end evidence, and the HTML report. It uses the same independent Standards/Spec review and three-correction limit, with its own persisted `parent-finalization` run and budget. The reviewer checks that demonstrations and code explanations match the tested candidate; code fixes require refreshed end-to-end runs and report evidence. The parent and child acceptance criteria define the specification; the planning baseline is delivery evidence rather than the review base. Resume with `$finalize-parent <local-run-path>`.
+
+After a clean final review and passing checks, the skill pushes the reviewed commits and updates the existing draft with the delivered scope, cleanup dispositions, validation, and final review record. It verifies native closing associations for the parent and all delivered children, including nested children, plus required PR checks for the published SHA. Missing delivery, unresolved decisions, failed checks, or exhausted correction cycles leave the draft and local run available for resumption. It does not merge the PR or close issues directly.
 
 | Phase | Authorized by invocation | Human attention |
 | --- | --- | --- |
 | Plan | Discovery-document commits/pushes; specification and ticket publication | Upstream planning checkpoints; ambiguous ownership |
 | Implement | Ticket project association and In progress status; local implementation and review loop; final publication and native PR association after convergence | Ambiguous project/status mapping, product decisions, missing handoffs, blockers, nonconvergence after three cycles |
+| Finalize parent | Integration draft PR; bounded cleanup; isolated end-to-end testing and HTML demonstration/code report; final review loop and publication after convergence | Missing child delivery, consequential cleanup choices, unresolved decisions, blocked or failed end-to-end checks, nonconvergence after three cycles |
 | Review | Independent local inspection and report | Product or architecture decisions |
 | Correct findings | Verified fixes, local commit, and response | Product or architecture decisions |
 

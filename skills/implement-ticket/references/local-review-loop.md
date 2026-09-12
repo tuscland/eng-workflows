@@ -1,6 +1,6 @@
 # Local review loop contract
 
-Planning uses the tracker and pushed history. Implementation review uses local commits and reports; only the verified, independently cleared result is pushed.
+Planning uses the tracker and pushed history. Implementation and parent finalization use local commits and reports; newly authored implementation, cleanup, and correction commits are pushed only after independent clearance and verification. `finalize-parent` may first open a draft PR from already-published integration history.
 
 ## Ownership and upstream composition
 
@@ -14,7 +14,7 @@ Resolve `git rev-parse --path-format=absolute --git-common-dir`. Store each run 
 
 Keep:
 
-- `run.md`: canonical ticket repository, issue number, and node ID; ticket/spec source and revision; project URL/ID, item ID, status field/option IDs, previous status, and verified tracker setup; implementation base, implementation branch, pull-request base, and pinned review-base SHA (the planning baseline for planned work); planning references; author worktree and agent identity; initial remote implementation head or `absent`; candidate and verification evidence; correction attempts started; current phase/state; report paths; substantive human decision requests and resolutions; publication progress/URL and verified native ticket association; prioritized cleanup opportunities.
+- `run.md`: workflow kind; canonical ticket repository, issue number, and node ID; ticket/spec source and revision; project URL/ID, item ID, status field/option IDs, previous status, and verified tracker setup when applicable; implementation base, implementation branch, pull-request base, and pinned review-base SHA (the planning baseline for planned implementation; the target/candidate merge base for parent finalization); planning references; author worktree and agent identity; initial remote implementation head or `absent`; candidate and verification evidence; correction attempts started; current phase/state; report paths; substantive human decision requests and resolutions; publication progress/URL and verified native ticket association; prioritized cleanup opportunities.
 - `spec.md`: a snapshot of the specification, acceptance criteria, and required parent context, with source revision or content hash. Review uses this explicit snapshot instead of rediscovering a spec from commit messages.
 - `review-<cycle>-<attempt>.md`: complete reviewer report, with a distinct filename for each retry so prior reports survive.
 - `response-<cycle>.md`: the author's dispositions, evidence, input/resulting SHAs, and checks for that correction.
@@ -45,7 +45,7 @@ Review 0 examines the initial implementation. Allow at most three corrections, e
 | --- | --- |
 | Clean review and passing candidate checks | Check publication conditions |
 | Findings and fewer than three corrections started | Reserve correction N, address it, review N |
-| Findings after correction 3 and review | Stop `limit-reached`, unpublished |
+| Findings after correction 3 and review | Stop `limit-reached`; do not publish new commits |
 | Required human decision | Stop `needs-human` with the decision and evidence |
 | Failed checks, stale input, incomplete review, or unavailable tools | Record the blocked phase and resolve or surface the blocker |
 
@@ -55,14 +55,14 @@ Resume the existing run and pending attempt. Compaction, interruptions, and repe
 
 ## Publication conditions
 
-Only `implement-ticket` publishes, when:
+Only the calling delivery skill (`implement-ticket` or `finalize-parent`) publishes reviewed commits, when:
 
 1. The latest complete review is clean for the exact current commit and spec snapshot.
 2. Required checks passed for that candidate, the author worktree is clean, and commits contain only ticket-related work.
 3. A fresh fetch confirms the implementation base still contains the pinned planning baseline and the remote implementation branch matches its recorded state. Reconcile unexpected movement in the implementation or pull-request base and renew review whenever it changes the reviewed diff; never silently rebase or force-push.
 4. No pending decision, blocker, or exhausted nonconverging loop remains.
 
-Push the reviewed commit history normally, then create or update its draft PR under repository conventions. Do not squash or rewrite after review. Keep reports, responses, and coordination off the tracker and out of commits. Never merge or close issues directly.
+Push the reviewed commit history normally, then create or update its draft PR under repository conventions. Do not squash or rewrite after review. Keep raw review reports, responses, and coordination off the tracker and out of commits. The user-facing HTML delivery report from `finalize-parent` follows that skill's artifact-delivery rules. Never merge or close issues directly.
 
 Record publication progress. If the push succeeds but PR creation fails, verify that same remote head and resume only the missing publication step; reuse an existing PR rather than creating a duplicate.
 
@@ -93,11 +93,11 @@ GitHub closes an associated issue automatically only when the closing change rea
 
 ## Completion and cleanup opportunities
 
-After implementation and review, inspect the final diff and nearby code already encountered for useful follow-up cleanup, dead code removal, or debt reduction. Record the opportunities in `run.md` and include them in the final user-facing handoff alongside the project/status, commit, PR, verified native ticket link, checks, correction/review counts, and local report path.
+After implementation and review, inspect the final diff and nearby code already encountered for useful follow-up cleanup, dead code removal, or debt reduction. Record the opportunities in `run.md`, publish a concise **Cleanup opportunities** section in the ticket PR body, and include them in the final user-facing handoff alongside the project/status, commit, PR, verified native ticket link, checks, correction/review counts, and local report path. Put the cleanup section before the closing directives and final local review record. Keep enough code evidence, impact, and cost in the PR for `finalize-parent` to assess it without local files or conversation history.
 
 Use a short ranked table with opportunity and code evidence, expected impact, estimated cost, and priority rationale. Express impact concretely (for example, a removed failure mode, less maintenance, or reduced runtime/bundle cost); estimate effort as small/medium/large with a brief explanation of scope and risk. Favor high-impact, low-cost work, explaining any different ordering due to dependencies or risk. Check callers, exports, configuration, and dynamic use before calling code dead; label uncertain candidates as requiring verification. Say when no worthwhile opportunity was found rather than inventing recommendations.
 
-These are follow-up recommendations, not additional implementation or newly filed tickets. Required correctness fixes still belong in the review/fix loop. Do not alter the reviewed candidate to implement optional cleanup after a clean review; doing so requires renewed verification and review.
+For `implement-ticket`, these are follow-up recommendations, not additional implementation or newly filed tickets. `finalize-parent` selects and executes supported cleanup under its own scope and final review loop. Required correctness fixes still belong in the review/fix loop. Do not alter the reviewed candidate to implement optional cleanup after a clean review; doing so requires renewed verification and review.
 
 ## Pull request review record
 

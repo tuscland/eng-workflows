@@ -1,0 +1,4 @@
+interface:
+  display_name: "Finalize Parent"
+  short_description: "Finalize with E2E tests, an HTML demo, and review"
+  default_prompt: "Use $finalize-parent to open the integration draft PR, execute worthwhile cleanup, run end-to-end tests, produce an HTML demonstration and code explanation, and complete the final review loop."
