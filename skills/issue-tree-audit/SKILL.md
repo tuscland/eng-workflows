@@ -1,11 +1,17 @@
 ---
 name: issue-tree-audit
-description: "Audit a GitHub issue tree against the current codebase, identify obsolete, completed, duplicate, overlapping, over-scoped, or mis-prioritized work, and propose phased cleanup. Use when reviewing a backlog or an author's related issues before changing the tracker."
+description: "Audit a GitHub issue tree against the current codebase and propose factual cleanup of stale, completed, duplicate, or overlapping issues and relationships. Preserve product intent and open specification questions. Use before changing the tracker."
 ---
 
 # Issue Tree Audit
 
-Reconcile the issue tracker with the product that exists now. Treat every issue as a claim to verify, not as current truth. Produce a manageable, evidence-backed cleanup plan before changing the tracker.
+Reconcile issue facts and delivery status with the current codebase. Produce a manageable, evidence-backed cleanup plan before changing the tracker.
+
+## Keep product decisions in specification work
+
+Correct stale facts, duplication, status, and relationships while preserving the intended outcome. Do not decide future product behavior, invent acceptance criteria, drop requirements, or set roadmap priorities during an audit. Apply product decisions only when they are already recorded or explicitly supplied by the user.
+
+Unknowns are valid issue content: retain unresolved questions for specification work. Do not require answers or start a product interview to finish independent cleanup. When a proposed edit depends on an unresolved product choice, leave that part intact and note the question briefly.
 
 ## Establish the audit scope
 
@@ -20,15 +26,15 @@ Reconcile the issue tracker with the product that exists now. Treat every issue 
 Read the issue and its discussion, then inspect the relevant code, tests, documentation, schemas, and merged history. Determine:
 
 - what capability exists today;
-- what user-visible work genuinely remains;
+- which stated outcomes are delivered, remain unimplemented, or need specification;
 - which assumptions, paths, examples, or implementation plans are stale;
 - whether another issue already owns the same outcome;
 - whether the parent and child relationships still describe the work;
 - whether another person is actively responsible for it.
 
-Age alone is not evidence that an issue is obsolete. Distinguish a stale implementation proposal from a product need that is still valid.
+Age alone is not evidence that an issue is obsolete. Missing code shows an outcome is unimplemented, not that it is unwanted. A stale implementation proposal does not invalidate the product need.
 
-Classify each issue as one of: keep, close as completed, close as not planned or superseded, mark duplicate, simplify or rescope, split, repair hierarchy, correct labels or priority, or request a product decision.
+Recommend only supported cleanup: keep (including open specification questions), close as completed, mark duplicate, record an already-decided cancellation or supersession, correct stale facts, or repair hierarchy/metadata. Consolidate or split already-defined work only when its outcomes and constraints remain intact. Correct priority only to match a recorded decision or an explicit repository rule.
 
 For every recommendation, provide the issue link, the proposed action, the codebase evidence, why the action is appropriate now, and any remaining work or risk. Keep the explanation concise but sufficient for the user to challenge the conclusion.
 
@@ -36,17 +42,16 @@ For every recommendation, provide the issue link, the proposed action, the codeb
 
 Order phases by impact, dependency, confidence, and mutation risk. A useful default is:
 
-1. High-confidence cleanup that immediately improves the tree: completed or obsolete issues, clear duplicates, exact label corrections, obvious hierarchy repairs, and concise root trackers.
-2. Active scope shaping: refresh important live specifications, split independently deliverable work, and remove stale implementation detail.
-3. Portfolio decisions: uncertain product choices, broad reprioritization, and long-term ideas that need owner input.
+1. High-confidence status and metadata cleanup: completed issues, recorded cancellations or supersessions, clear duplicates, exact label corrections, and obvious hierarchy repairs.
+2. Factual body updates: correct stale references, record delivered work, and simplify duplicated context while preserving intended outcomes, constraints, and unanswered questions.
 
-Adapt the boundaries to the tree. Do not change everything at once. Present the audit and a detailed plan for the first phase before performing any write.
+Keep specification and roadmap decisions outside these phases. Present the audit and a concise plan for the first phase before performing any write.
 
 ## Preserve the approval boundary
 
 Issue discovery and codebase inspection are read-only. Do not edit, comment on, relabel, reparent, or close anything until the user approves the phase or the named actions.
 
-Approval for one phase authorizes only that phase. Re-read every target immediately before mutation and stop on material concurrent changes. Preserve active work owned by someone else; recommend changes or a status comment instead unless the user explicitly authorizes more.
+Approval for one phase authorizes only that cleanup, not product decisions. Re-read every target immediately before mutation and stop on material concurrent changes. Preserve active work owned by someone else; recommend changes or a status comment instead unless the user explicitly authorizes more.
 
 Tracker cleanup does not authorize repository edits, commits, pull requests, or code changes.
 
@@ -54,14 +59,14 @@ Tracker cleanup does not authorize repository edits, commits, pull requests, or 
 
 Make the smallest approved mutation to each issue.
 
-- Prefer short bodies that state the outcome, current delivery state, essential decisions or constraints, and completion condition.
+- Prefer short bodies that preserve the stated outcome, known delivery state, agreed constraints and completion criteria, and open specification questions. Leave unspecified criteria unresolved.
 - Use native parent and sub-issue relationships as the delivery source of truth. Avoid duplicating child status in prose unless sequencing needs explanation.
-- Remove stale paths, historical narration, speculative implementation detail, and already-delivered examples. Preserve still-valid product decisions and acceptance criteria.
-- When splitting work, keep each child independently deliverable and make the tracker explain only shared context and ordering.
+- Remove demonstrably stale paths, redundant history, and obsolete implementation detail. Preserve product intent, acceptance criteria, and useful hypotheses or questions for specification work.
+- When splitting already-defined work, preserve its requirements and known dependencies without inventing new scope or ordering.
 - Change only the requested label axis or field; preserve unrelated metadata.
 - For another owner's active issue, leave its scope intact unless approved. A concise informational comment may record what has landed and suggest a split.
 
-Before closing any issue, post a concise justification comment. State the evidence, where remaining work lives, and the superseding issue when applicable. Only then close it with the accurate reason: completed, not planned, or duplicate.
+Before closing any issue, post a concise justification comment. State the evidence, where remaining work lives, and the superseding issue when applicable. Only then close it with the accurate reason: completed, not planned, or duplicate. Use not planned only for an already-recorded or explicitly supplied cancellation; unanswered product questions are not a closure reason.
 
 ## Verify and report
 

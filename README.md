@@ -22,7 +22,7 @@ End-to-end results and demonstrations are reused when the relevant code and test
 | --- | --- |
 | A copy-ready daily update of your PRs merged into `main` since yesterday | [`list-merged-prs`](skills/list-merged-prs/SKILL.md) |
 | A weekly account of delivered value, architecture changes, and risks from merged PRs | [`eng-review-report`](skills/eng-review-report/SKILL.md) |
-| Find obsolete, completed, or overlapping issues and propose backlog cleanup | [`issue-tree-audit`](skills/issue-tree-audit/SKILL.md) |
+| Reconcile issues with current code while preserving product intent and open specification questions | [`issue-tree-audit`](skills/issue-tree-audit/SKILL.md) |
 
 ## How it works
 
