@@ -1,30 +1,33 @@
 # Engineering Workflows
 
-Reusable agent skills for software delivery and team visibility.
+Take a feature from a tracked idea to reviewed draft pull requests and a clear demonstration of what it does. These agent skills handle planning, implementation, cleanup, and verification, while you make product decisions and choose when to merge.
 
-## Agentic coding workflow
+The final HTML report explains the user and developer experience first, shows the feature in action, then walks through the code and validation evidence. You can understand the outcome before digging into implementation details.
 
-These skills form an orchestration layer on top of Matt Pocock's planning, implementation, and code-review skills. They add durable planning handoffs, isolated worktrees, and a local author/reviewer loop that publishes reviewed implementation and cleanup commits.
+## Deliver a feature
 
-| Skill | Purpose | Builds on |
-| --- | --- | --- |
-| [`plan-issue-tree`](skills/plan-issue-tree/SKILL.md) | Publish discovery documents on an integration branch, then the specification, tickets, and handoff in the tracker. | `grill-with-docs`, `to-spec`, `to-tickets` |
-| [`implement-ticket`](skills/implement-ticket/SKILL.md) | Implement, coordinate up to three local correction/review cycles, then push the clean result and open its draft pull request. | `implement`, `code-review` |
-| [`finalize-parent`](skills/finalize-parent/SKILL.md) | Open the integration draft PR, execute worthwhile cleanup, test end to end, produce an HTML demo and code explanation, and independently review the full delivery. | `implement`, `code-review` |
+With the skills available to your agent, start in the repository you want to change:
 
-The author agent coordinates implementation and corrections. A separate reviewer uses the same local repository and reports through local files. Issues and pushed documents supply planning context; GitHub is not used for intermediate review conversations. A clean review and passing checks authorize final publication.
+1. **[Plan](skills/plan-issue-tree/SKILL.md)** — `$plan-issue-tree <parent-issue-or-goal>` turns the goal into a specification, implementation tickets, and a shared integration branch.
+2. **[Implement](skills/implement-ticket/SKILL.md)** — `$implement-ticket <ticket>` sets the ticket's project status to In progress, implements and reviews the change, and opens a linked draft PR with cleanup recommendations. Repeat for each child ticket.
+3. **[Finalize](skills/finalize-parent/SKILL.md)** — Once required child changes have landed on the integration branch, run `$finalize-parent <parent-issue>`. It opens the integration draft PR, executes worthwhile cleanup, verifies the combined feature end to end, and produces the HTML report with a final independent review.
 
-See [Tracked Delivery Workflow](WORKFLOW.md) for the branch model, durable-state contract, approval boundaries, and complete lifecycle.
+For a standalone ticket, start with `implement-ticket`. Parent finalization is for the combined delivery after child implementation.
 
-## Team reporting
+End-to-end results and demonstrations are reused when the relevant code and test inputs are unchanged. Isolated fixes rerun affected scenarios; broad or uncertain changes receive wider testing. Report edits do not trigger another application replay.
 
-| Skill | Purpose |
+## Report progress and maintain the backlog
+
+| Need | Skill |
 | --- | --- |
-| [`eng-review-report`](skills/eng-review-report/SKILL.md) | Prepare a weekly engineering-review report focused on pull requests merged directly into `main`, with per-PR summaries of product impact, architecture changes, implementation challenges, and operational risk. |
-| [`list-merged-prs`](skills/list-merged-prs/SKILL.md) | Produce a chronological, categorized list of pull requests merged into `main` since yesterday for standups or Slack updates. |
+| A copy-ready daily update of your PRs merged into `main` since yesterday | [`list-merged-prs`](skills/list-merged-prs/SKILL.md) |
+| A weekly account of delivered value, architecture changes, and risks from merged PRs | [`eng-review-report`](skills/eng-review-report/SKILL.md) |
+| Find obsolete, completed, or overlapping issues and propose backlog cleanup | [`issue-tree-audit`](skills/issue-tree-audit/SKILL.md) |
 
-## Project management
+## How it works
 
-| Skill | Purpose |
-| --- | --- |
-| [`issue-tree-audit`](skills/issue-tree-audit/SKILL.md) | Reconcile an issue tree with the current codebase and propose phased cleanup for completed, obsolete, duplicate, overlapping, or mis-prioritized work. |
+The author agent implements and fixes findings; a separate reviewer checks the code against the specification. New implementation and cleanup commits are pushed after a clean review and passing checks. Each run allows up to three correction cycles and preserves local state for resumption. Pull requests remain drafts for your merge decision.
+
+The delivery skills build on Matt Pocock's skills, which must also be available: planning uses `grill-with-docs`, `to-spec`, and `to-tickets`; implementation and finalization use `implement` and `code-review`. Independent review requires an agent environment with subagent support.
+
+See [Tracked Delivery Workflow](WORKFLOW.md) for branch and worktree conventions, review state, publication conditions, and report requirements.
