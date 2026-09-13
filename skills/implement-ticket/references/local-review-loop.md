@@ -62,6 +62,8 @@ Only the calling delivery skill (`implement-ticket` or `finalize-parent`) publis
 3. A fresh fetch confirms the implementation base still contains the pinned planning baseline and the remote implementation branch matches its recorded state. Reconcile unexpected movement in the implementation or pull-request base and renew review whenever it changes the reviewed diff; never silently rebase or force-push.
 4. No pending decision, blocker, or exhausted nonconverging loop remains.
 
+For `finalize-parent`, end-to-end evidence may include earlier executions whose applicability to the current candidate is verified under its report reference's reuse policy. This does not waive required PR checks on the published SHA or independent review of the current candidate.
+
 Push the reviewed commit history normally, then create or update its draft PR under repository conventions. Do not squash or rewrite after review. Keep raw review reports, responses, and coordination off the tracker and out of commits. The user-facing HTML delivery report from `finalize-parent` follows that skill's artifact-delivery rules. Never merge or close issues directly.
 
 Record publication progress. If the push succeeds but PR creation fails, verify that same remote head and resume only the missing publication step; reuse an existing PR rather than creating a duplicate.
