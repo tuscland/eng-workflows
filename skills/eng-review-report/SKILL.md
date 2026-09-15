@@ -30,7 +30,7 @@ Search across repositories and paginate until the result set is complete. If aut
 
 ## Investigate each merged pull request
 
-Inspect every reportable pull request individually. Read its description, linked issues, commits, changed files and diff, review discussion, and relevant surrounding code or documentation. Do not summarize from the title alone.
+Inspect every reportable pull request individually, starting with its description, changed files, and diff. Read linked issues, commits, review discussion, and surrounding code or documentation when those sources are needed to establish shipped behavior, architectural consequences, or a material uncertainty. Expand investigation for truncated diffs, incomplete descriptions, unclear compatibility or rollout behavior, and claims the initial evidence does not support. Stop when the summary's material claims are supported; do not summarize from the title alone.
 
 When a pull request merged to `main` is an integration or roll-up change, inspect its constituent commits, linked issues, and intermediate pull requests as evidence needed to understand what shipped. Do not list or link those intermediate pull requests in the report; the `main` pull request remains the sole reportable unit.
 

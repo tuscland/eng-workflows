@@ -26,8 +26,10 @@ End-to-end results and demonstrations are reused when the relevant code and test
 
 ## How it works
 
-The author agent implements and fixes findings; a separate reviewer checks the code against the specification. New implementation and cleanup commits are pushed after a clean review and passing checks. Each run allows up to three correction cycles and preserves local state for resumption. Pull requests remain drafts for your merge decision.
+The author agent implements and fixes findings; a separate reviewer checks the code against the specification. Bounded tickets use one independent reviewer covering Standards and Spec; complex changes and parent finalization use separate specialists coordinated by that reviewer. Routine implementation choices follow the specification and repository conventions; unresolved consequential decisions return to you. New implementation and cleanup commits are pushed after a clean review and passing checks. Each run allows up to three correction cycles and preserves local state for resumption. Pull requests remain drafts for your merge decision.
 
-The delivery skills build on Matt Pocock's skills, which must also be available: planning uses `grill-with-docs`, `to-spec`, and `to-tickets`; implementation and finalization use `implement` and `code-review`. Independent review requires an agent environment with subagent support.
+The delivery skills build on Matt Pocock's skills, which must also be available: planning uses `grill-with-docs`, `to-spec`, and `to-tickets`; implementation and finalization use `implement` and `code-review`. Planning checks its prerequisites before creating branches or worktrees. Independent review requires an agent environment with subagent support; specialist mode needs capacity for the author, reviewer, and two specialists.
 
 See [Tracked Delivery Workflow](WORKFLOW.md) for branch and worktree conventions, review state, publication conditions, and report requirements.
+
+The daily PR skill includes a Python 3.9+ retrieval helper using the authenticated `gh` CLI. Run its offline pagination, timezone, and command tests with `python3 -B -m unittest discover -s tests -v`.

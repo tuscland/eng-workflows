@@ -4,7 +4,12 @@ Planning uses the tracker and pushed history. Implementation and parent finaliza
 
 ## Ownership and upstream composition
 
-The main agent is author/coordinator. A separate reviewer follows [the reviewer instructions](review.md) and runs `/code-review`'s parallel Standards and Spec agents. The author waits during review and handles every correction. This uses four active agents without a separate coordinator or author subagent.
+The main agent is author/coordinator. A separate reviewer follows [the reviewer instructions](review.md). The author waits during review and handles every correction. Select and record the review mode before delegation:
+
+- **Single reviewer:** for a bounded ticket whose behavior, affected callers, and verification fit one coherent review, one independent agent applies `/code-review`'s Standards and Spec criteria itself and reports both axes separately. Explicitly replace the upstream skill's fan-out with this composition; do not run a second embedded review.
+- **Specialist reviewers:** for parent finalization, changes spanning interacting subsystems, security or compatibility-sensitive work, migrations, or uncertain scope, the independent reviewer coordinates `/code-review`'s separate Standards and Spec agents. This uses four active agents including the author. Use this mode when repository instructions require it or the single reviewer discovers complexity that needs separate analyses.
+
+Both modes require the same evidence and clearance. Record mode changes without resetting the correction budget. If independent delegation or the selected mode's required capacity is unavailable, preserve the run and surface the blocker; author self-review cannot replace it.
 
 Within this workflow, `/implement` owns implementation, TDD, verification, and local commits. The independent reviewer replaces its embedded review and runs after the candidate is committed. Pass this composition explicitly when invoking `/implement`; do not run duplicate reviews or commits. Corrections reuse `/implement` and return to the same loop.
 
@@ -14,7 +19,7 @@ Resolve `git rev-parse --path-format=absolute --git-common-dir`. Store each run 
 
 Keep:
 
-- `run.md`: workflow kind; canonical ticket repository, issue number, and node ID; ticket/spec source and revision; project URL/ID, item ID, status field/option IDs, previous status, and verified tracker setup when applicable; implementation base, implementation branch, pull-request base, and pinned review-base SHA (the planning baseline for planned implementation; the target/candidate merge base for parent finalization); planning references; author worktree and agent identity; initial remote implementation head or `absent`; candidate and verification evidence; correction attempts started; current phase/state; report paths; substantive human decision requests and resolutions; publication progress/URL and verified native ticket association; prioritized cleanup opportunities.
+- `run.md`: workflow kind; canonical ticket repository, issue number, and node ID; ticket/spec source and revision; project URL/ID, item ID, status field/option IDs, previous status, and verified tracker setup when applicable; implementation base, implementation branch, pull-request base, planning baseline, and pinned review-base SHA with its provenance; planning references; author worktree and agent identity; review mode and rationale; initial remote implementation head or `absent`; candidate and verification evidence; correction attempts started; current phase/state; report paths; substantive human decision requests and resolutions; publication progress/URL and verified native ticket association; prioritized cleanup opportunities.
 - `spec.md`: a snapshot of the specification, acceptance criteria, and required parent context, with source revision or content hash. Review uses this explicit snapshot instead of rediscovering a spec from commit messages.
 - `review-<cycle>-<attempt>.md`: complete reviewer report, with a distinct filename for each retry so prior reports survive.
 - `response-<cycle>.md`: the author's dispositions, evidence, input/resulting SHAs, and checks for that correction.
@@ -24,6 +29,23 @@ The author owns run state and responses; the reviewer owns reports. Write output
 Each review records the candidate SHA, pinned base, spec identity, cycle, and outcome (`clean`, `findings`, `needs-human`, or `blocked`). Preserve separate Standards and Spec sections, stable IDs such as `STD-001`/`SPEC-001`, and every prior finding's `open`, `partial`, or `closed` status with evidence. Only the reviewer closes findings. `clean` requires both axes complete and no unresolved actionable finding or decision.
 
 Every pass reviews the full ticket diff from the pinned base and rechecks prior findings. A changed candidate or specification invalidates an earlier clean report. A rebuttal-only response still needs review, even at the same SHA.
+
+## Review base and planning baseline
+
+The planning baseline proves that required planning artifacts are available. Verify it remains reachable from the implementation base and candidate when supplied; it does not generally identify the start of a ticket's diff.
+
+- For a new child branch, pin the fetched integration revision from which that branch is created. Earlier delivered siblings are context, not part of this ticket's diff.
+- For a single planned ticket using the integration branch itself, pin its pre-implementation planning baseline.
+- For a standalone ticket, pin the fetched target revision from which implementation starts.
+- For parent finalization, pin the merge base of the fetched target and integration candidate, so review includes planning documents and the entire delivered feature.
+
+Record the base before authoring. Reuse an existing run's pin. If a branch already contains implementation but has no run, recover its actual starting revision from the handoff and history; do not pin its current head or a newer base that would omit existing work. Resolve genuinely ambiguous provenance before clearance. Correcting a legacy planning-baseline pin requires evidence of the ticket's starting revision, preservation of prior reports, and renewed full review without resetting the cycle count.
+
+Keep the pin across corrections. Reconcile later base movement under the publication conditions; changing a pin or reviewed diff invalidates clearance. Still inspect relevant callers and interactions outside the diff when assessing consequences.
+
+## Decisions requiring human input
+
+Use `needs-human` for unresolved decisions that materially change accepted scope, behavior, compatibility, or architecture, or require authority the workflow does not have. Resolve ordinary implementation choices using the specification and repository conventions. Honor recorded decisions; disagreement with a supported implementation choice alone is not a new product decision. Continue independent authorized work while a required decision is pending, preserving the run's phase and budget.
 
 ## Ticket project and status
 
@@ -59,7 +81,7 @@ Only the calling delivery skill (`implement-ticket` or `finalize-parent`) publis
 
 1. The latest complete review is clean for the exact current commit and spec snapshot.
 2. Required checks passed for that candidate, the author worktree is clean, and commits contain only ticket-related work.
-3. A fresh fetch confirms the implementation base still contains the pinned planning baseline and the remote implementation branch matches its recorded state. Reconcile unexpected movement in the implementation or pull-request base and renew review whenever it changes the reviewed diff; never silently rebase or force-push.
+3. A fresh fetch confirms the implementation base still contains the planning baseline when one is required, the candidate contains the pinned review base, and the remote implementation branch matches its recorded state. Reconcile unexpected movement in the implementation or pull-request base and renew review whenever it changes the reviewed diff; never silently rebase or force-push.
 4. No pending decision, blocker, or exhausted nonconverging loop remains.
 
 For `finalize-parent`, end-to-end evidence may include earlier executions whose applicability to the current candidate is verified under its report reference's reuse policy. This does not waive required PR checks on the published SHA or independent review of the current candidate.

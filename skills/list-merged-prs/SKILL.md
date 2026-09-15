@@ -5,24 +5,17 @@ description: List PRs authored by the authenticated GitHub user and merged into 
 
 # List Merged PRs
 
-Use the authenticated `gh` CLI to search every repository visible to the current account. Unless the user supplies another author, resolve the author with `gh api user --jq .login`.
+Use Python 3.9+ and the authenticated `gh` CLI to search every repository visible to the current account. The [retrieval helper](scripts/list_merged_prs.py) resolves the current author, paginates GitHub results, filters exact merge timestamps, and returns chronological JSON without changing remote state.
 
-Interpret "since yesterday" as starting at yesterday's calendar date in the user's local timezone. Compute that date as `YYYY-MM-DD`, then run:
+Interpret "since yesterday" as yesterday at local midnight through the current time. Run the helper from its installed skill directory; pass the user's IANA timezone when known, otherwise it uses the system's local timezone:
 
 ```sh
-gh api graphql \
-  -f query='query($searchQuery: String!) {
-    search(query: $searchQuery, type: ISSUE, first: 100) {
-      nodes { ... on PullRequest { number title url mergedAt } }
-    }
-  }' \
-  -F searchQuery='author:LOGIN is:pr is:merged base:main merged:>=YYYY-MM-DD' \
-  --jq '.data.search.nodes | sort_by(.mergedAt) | .[] | "[#\(.number)](\(.url)) - \(.title)"'
+python3 <skill-dir>/scripts/list_merged_prs.py --timezone Europe/Paris
 ```
 
-Keep the ascending merge order produced by the command within each category.
+The timezone above is an example. Honor supplied overrides using `--author`, `--base`, repeatable `--repo owner/name` or `--org name`, and `--since`/`--until`. Dates mean midnight in the selected timezone; timestamps must contain an offset or `Z`. The interval includes `--since` and excludes `--until`; for an inclusive final calendar day, use the following day's midnight as `--until`. Without overrides, use the authenticated author, `main`, all accessible repositories, and yesterday's cutoff.
 
-Replace `LOGIN` with the resolved account login. Honor a different author, date range, organization, repository, or base branch when the user supplies one. Otherwise use the authenticated login, `main`, and the cutoff above.
+The helper emits results only after complete retrieval. If the query exceeds GitHub's 1,000-result search cap, split the window or repository scope, complete every partition, deduplicate by PR ID, and sort the combined results by `mergedAt`. For changing search results, retry once. If authentication, permissions, pagination, or other failures prevent completeness, return a concise limitation instead of a partial list or `No PRs found.` Keep ascending merge order within each category.
 
 Group results under these coarse categories, omitting empty categories:
 

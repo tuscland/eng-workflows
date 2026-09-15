@@ -4,7 +4,7 @@ Use `plan-issue-tree` to prepare tracked work, `implement-ticket` to implement a
 
 ## Planning
 
-`plan-issue-tree` runs `grill-with-docs`, `to-spec`, and `to-tickets` in sequence, honoring their existing user checkpoints without an extra publication approval.
+`plan-issue-tree` checks that `grill-with-docs`, `to-spec`, `to-tickets`, and the required tracker operations are available before creating a branch/worktree or publishing. It then runs those skills in sequence, honoring their existing user checkpoints without an extra publication approval. Missing dependencies allow independent read-only discovery while their resolution is pending.
 
 - Specifications, acceptance criteria, ticket relationships, and planning handoffs live in the tracker.
 - Only repository documents produced by `grill-with-docs`, typically ADRs, research notes, and glossary changes, are committed during planning.
@@ -27,13 +27,15 @@ Use `none` when there are no artifacts. Each child has its native parent relatio
 
 Before implementing a child, verify that the baseline and artifacts are reachable from its fetched base and completed blockers have landed there. Missing handoffs must be resolved, not replaced with another base.
 
+The planning baseline proves artifact availability. A new child's review base is the fetched integration revision from which its implementation branch starts, excluding earlier sibling deliveries from that ticket's diff. A single planned ticket uses its pre-implementation planning baseline; a standalone ticket uses its starting target revision. Record the base before authoring, recover existing implementation's starting revision from evidence, and reuse the pin across corrections. The [shared contract](skills/implement-ticket/references/local-review-loop.md#review-base-and-planning-baseline) governs legacy runs and changes to the pin.
+
 ## Local implementation loop
 
 Start `$implement-ticket <ticket>` in the author conversation. That same agent implements, coordinates reviews, and addresses findings. For a single ticket it reuses the integration branch and planning worktree. For a child ticket it creates the declared ticket branch and worktree under the repository's `.worktrees/` directory. It uses the repository-required isolated test environment in both cases.
 
 At startup, associate the implementation ticket with its intended project and set its project status to In progress, then read back both values. Reuse an existing project item and preserve other memberships. Resolve the project from the request, repository conventions, or an unambiguous ticket/parent association; surface ambiguity instead of selecting an arbitrary project. On resume, finish incomplete setup without resetting a later review/done status.
 
-A separate reviewer checks the exact local commit in a detached worktree. It receives the pinned specification and local reports, not the author's implementation conversation. `/code-review` runs its independent Standards and Spec subagents; the author waits until they finish.
+A separate reviewer checks the exact local commit in a detached worktree. It receives the pinned specification and local reports, not the author's implementation conversation. For bounded tickets, that reviewer applies `/code-review`'s Standards and Spec criteria itself. Complex or sensitive changes and parent finalization use separate Standards and Spec subagents coordinated by the reviewer. Record the selected mode and rationale under the shared contract and expand to specialists if needed; both modes require complete coverage of both axes. The author waits until review finishes.
 
 ```mermaid
 flowchart TD
@@ -89,7 +91,7 @@ After a clean final review and passing checks, the skill pushes the reviewed com
 | Plan | Discovery-document commits/pushes; specification and ticket publication | Upstream planning checkpoints; ambiguous ownership |
 | Implement | Ticket project association and In progress status; local implementation and review loop; final publication and native PR association after convergence | Ambiguous project/status mapping, product decisions, missing handoffs, blockers, nonconvergence after three cycles |
 | Finalize parent | Integration draft PR; bounded cleanup; isolated end-to-end testing and HTML demonstration/code report; final review loop and publication after convergence | Missing child delivery, consequential cleanup choices, unresolved decisions, blocked or failed end-to-end checks, nonconvergence after three cycles |
-| Review | Independent local inspection and report | Product or architecture decisions |
-| Correct findings | Verified fixes, local commit, and response | Product or architecture decisions |
+| Review | Independent local inspection and report | Unresolved consequential decisions under the shared contract |
+| Correct findings | Verified fixes, local commit, and response | Unresolved consequential decisions under the shared contract |
 
-On a decision, verification failure, stale input, or exhausted nonconverging loop, preserve local work and report the unresolved matter. A changed candidate invalidates its previous clean review. An interrupted publication resumes only its missing steps after verifying the remote head. None of these workflows force-push, merge, close issues, or use tracker reviews as a message board.
+Resolve routine implementation choices using the specification and repository conventions. Escalate unresolved decisions that materially change accepted scope, behavior, compatibility, or architecture, and continue independent authorized work while awaiting the answer. On a required decision, verification failure, stale input, or exhausted nonconverging loop, preserve local work and report the unresolved matter. A changed candidate invalidates its previous clean review. An interrupted publication resumes only its missing steps after verifying the remote head. None of these workflows force-push, merge, close issues, or use tracker reviews as a message board.
