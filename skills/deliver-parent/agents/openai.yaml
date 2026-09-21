@@ -1,0 +1,4 @@
+interface:
+  display_name: "Deliver Parent"
+  short_description: "Implement, integrate, and finalize a parent issue"
+  default_prompt: "Use $deliver-parent to audit this planned parent against current repository state, implement every ready child ticket, merge cleared child pull requests into the integration branch, and finalize the parent without merging the target branch."

@@ -9,8 +9,9 @@ The final HTML report explains the user and developer experience first, shows th
 With the skills available to your agent, start in the repository you want to change:
 
 1. **[Plan](skills/plan-issue-tree/SKILL.md)** — `$plan-issue-tree <parent-issue-or-goal>` turns the goal into a specification, implementation tickets, and a shared integration branch.
-2. **[Implement](skills/implement-ticket/SKILL.md)** — `$implement-ticket <ticket>` sets the ticket's project status to In progress, implements and reviews the change, and opens a linked draft PR with cleanup recommendations. Repeat for each child ticket.
-3. **[Finalize](skills/finalize-parent/SKILL.md)** — Once required child changes have landed on the integration branch, run `$finalize-parent <parent-issue>`. It opens the integration draft PR, executes worthwhile cleanup, verifies the combined feature end to end, and produces the HTML report with a final independent review.
+2. **[Deliver](skills/deliver-parent/SKILL.md)** — `$deliver-parent <parent-issue>` first checks the specification and ticket tree against current repository state, then implements every ready ticket, merges each cleared child pull request into the integration branch, and runs parent finalization. It leaves the final integration pull request open and draft for your merge decision.
+
+For manual control, **[Implement](skills/implement-ticket/SKILL.md)** a ticket at a time and then **[Finalize](skills/finalize-parent/SKILL.md)** the integrated parent. `deliver-parent` coordinates those same workflows and never merges into `main` or the repository's default branch.
 
 For a standalone ticket, start with `implement-ticket`. Parent finalization is for the combined delivery after child implementation.
 
@@ -26,7 +27,7 @@ End-to-end results and demonstrations are reused when the relevant code and test
 
 ## How it works
 
-The author agent implements and fixes findings; a separate reviewer checks the code against the specification. Bounded tickets use one independent reviewer covering Standards and Spec; complex changes and parent finalization use separate specialists coordinated by that reviewer. Routine implementation choices follow the specification and repository conventions; unresolved consequential decisions return to you. New implementation and cleanup commits are pushed after a clean review and passing checks. Each run allows up to three correction cycles and preserves local state for resumption. Pull requests remain drafts for your merge decision.
+The author agent implements and fixes findings; a separate reviewer checks the code against the specification. Bounded tickets use one independent reviewer covering Standards and Spec; complex changes and parent finalization use separate specialists coordinated by that reviewer. Routine implementation choices follow the specification and repository conventions; unresolved consequential decisions return to you. New implementation and cleanup commits are pushed after a clean review and passing checks. Each run allows up to six correction cycles and preserves local state for resumption. The final integration pull request remains draft for your merge decision.
 
 The delivery skills build on Matt Pocock's skills, which must also be available: planning uses `grill-with-docs`, `to-spec`, and `to-tickets`; implementation and finalization use `implement` and `code-review`. Planning checks its prerequisites before creating branches or worktrees. Independent review requires an agent environment with subagent support; specialist mode needs capacity for the author, reviewer, and two specialists.
 
