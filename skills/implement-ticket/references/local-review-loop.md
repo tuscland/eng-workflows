@@ -59,19 +59,19 @@ On GitHub Projects v2:
 
 On resume, finish only incomplete setup. Re-read remote state before a mutation; do not reset a later review/done status while resuming review or publication. If a project or status mapping is ambiguous, or access prevents the update, record the missing decision or permission and continue independent local work. Do not invent a project/status option or claim startup tracking is complete. Invocation authorizes these specific metadata updates without another approval checkpoint; it does not authorize changing unrelated project fields.
 
-## Three-cycle limit
+## Six-cycle limit
 
-Review 0 examines the initial implementation. Allow at most three corrections, each followed by review; the usual maximum is four review passes.
+Review 0 examines the initial implementation. Allow at most six corrections, each followed by review; the usual maximum is seven review passes.
 
 | Result | Next action |
 | --- | --- |
 | Clean review and passing candidate checks | Check publication conditions |
-| Findings and fewer than three corrections started | Reserve correction N, address it, review N |
-| Findings after correction 3 and review | Stop `limit-reached`; do not publish new commits |
+| Findings and fewer than six corrections started | Reserve correction N, address it, review N |
+| Findings after correction 6 and review | Stop `limit-reached`; do not publish new commits |
 | Required human decision | Stop `needs-human` with the decision and evidence |
 | Failed checks, stale input, incomplete review, or unavailable tools | Record the blocked phase and resolve or surface the blocker |
 
-Reserve a correction before beginning it; complete the cycle after its review. Rebuttal-only corrections count. Always review correction 3; never begin correction 4 without explicit human authorization.
+Reserve a correction before beginning it; complete the cycle after its review. Rebuttal-only corrections count. Always review correction 6; never begin correction 7 without explicit human authorization.
 
 Resume the existing run and pending attempt. Compaction, interruptions, and repeated invocations do not reset the budget. Retrying an incomplete or invalidated review does not allocate a correction or permit an extra fix. Reconcile changed inputs, record any changed specification, and preserve superseded reports. After `limit-reached`, a human must authorize another budget.
 
