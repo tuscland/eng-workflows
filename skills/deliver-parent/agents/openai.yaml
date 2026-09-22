@@ -1,4 +1,4 @@
 interface:
   display_name: "Deliver Parent"
   short_description: "Implement and integrate a parent locally"
-  default_prompt: "Use $deliver-parent to audit this planned parent, implement each ready child on its own unsigned local branch, merge cleared work into the local integration branch, and finish local validation without SSH or GitHub publication."
+  default_prompt: "Use $deliver-parent to audit this planned parent, implement multiple tickets on unsigned local branches or a sole ticket directly on the integration branch, integrate cleared work locally, and finish validation without SSH or GitHub publication."
