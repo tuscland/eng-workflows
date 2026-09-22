@@ -18,6 +18,6 @@ The Standards and Spec agents review the entire parent diff, including interacti
 
 Finish initial cleanup before review 0. After that review, newly selected cleanup or author code fixes reserve the next correction attempt before authoring, even if the previous review was clean. The shared contract owns cycle counting, dispositions, and resumption; the delivery report reference owns scenario invalidation, report refresh, and which report changes need renewed review.
 
-External branch movement invalidates clearance when it changes the reviewed diff, without itself consuming a correction. Reconcile it without resetting the budget or authorizing extra fixes. After six attempts, defer additional optional cleanup or obtain explicit authorization for a new budget; required defects still prevent completion.
+External branch movement invalidates clearance when it changes the reviewed diff, without itself consuming a correction. Reconcile it without resetting the budget or authorizing extra fixes. After ten attempts, defer additional optional cleanup or obtain explicit authorization for a new budget; required defects still prevent completion.
 
 The initial draft uses only already-published history. Keep cleanup and correction commits local until publication conditions pass. Preserve blocked runs and drafts. On partial publication, verify the remote head and resume only missing push, PR-update, association, or check-verification steps under the shared contract.
